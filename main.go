@@ -8,11 +8,9 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/prologic/bitcask"
+	db "github.com/repcakk/hardware-inventory-server/database"
 )
 
-var db, _ = bitcask.Open("hardware-database")
-var userComputerMap = loadUsernames("config/usernames-mapping.json")
 var config = loadConfig("config/config.json")
 
 // Config structure for storing server properties
@@ -31,54 +29,22 @@ func loadConfig(file string) Config {
 	return config
 }
 
-func loadUsernames(file string) map[string]string {
-	usernamesMap := make(map[string]string)
-
-	usernamesFile, err := os.Open(file)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	jsonParser := json.NewDecoder(usernamesFile)
-	jsonParser.Decode(&usernamesMap)
-
-	return usernamesMap
-}
-
 func updateHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	computerID := r.FormValue("computerId")
 	gpuName := r.FormValue("gpuName")
 
-	addOrUpdateRow(computerID, gpuName)
+	db.AddOrUpdateRow(computerID, gpuName)
 }
 
 func inventoryHandler(w http.ResponseWriter, r *http.Request) {
 	hardwareInventoryTemplate, _ := template.ParseFiles("hardware-inventory.html")
-	hardwareInventoryTemplate.Execute(w, getRows())
-}
-
-func addOrUpdateRow(computerID string, gpuName string) {
-	db.Put([]byte(computerID), []byte(gpuName))
-	db.Merge()
-}
-
-func getRows() map[string]string {
-	computersGpuMap := make(map[string]string)
-	for key := range db.Keys() {
-		value, _ := db.Get([]byte(key))
-		computersGpuMap[string([]byte(key))] = string(value)
-	}
-
-	userGpuMap := make(map[string]string)
-	for computerID, gpuName := range computersGpuMap {
-		userGpuMap[userComputerMap[computerID]] = gpuName
-	}
-
-	return userGpuMap
+	hardwareInventoryTemplate.Execute(w, db.GetRows())
 }
 
 func main() {
-	defer db.Close() // db will close after main returns
+	defer db.CloseHardwareDB()
+	defer db.CloseUserDB()
 
 	http.HandleFunc("/update", updateHandler)
 	http.HandleFunc("/inventory", inventoryHandler)
