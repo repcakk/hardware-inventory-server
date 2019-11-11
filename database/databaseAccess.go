@@ -62,3 +62,25 @@ func (db *BitcaskDB) GetRows() map[string]string {
 
 	return resultsMap
 }
+
+// ClearDB clears given database
+func (db *BitcaskDB) ClearDB() {
+	for key := range db.Keys() {
+		db.Delete(key)
+	}
+}
+
+// OverwriteDatabaseFromJSON clears current content of database and replace it with new
+// path - Path to JSON file representing new content for database
+func (db *BitcaskDB) OverwriteDatabaseFromJSON(filePath string) {
+	db.ClearDB()
+	for key, value := range helpers.ReadJSON(filePath) {
+		db.Put([]byte(key), []byte(value))
+	}
+}
+
+// DumpDatabaseToJSON dumps current content of database to JSON file
+// path - Path to JSON dump file
+func (db *BitcaskDB) DumpDatabaseToJSON(filePath string) {
+	helpers.WriteJSON(filePath, db.GetRows())
+}

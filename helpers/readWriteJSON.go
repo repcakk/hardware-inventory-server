@@ -8,10 +8,10 @@ import (
 
 // ReadJSON loads key-value pair JSON
 // into map[string]string data structure
-func ReadJSON(file string) map[string]string {
+func ReadJSON(filePath string) map[string]string {
 	keyValueMap := make(map[string]string)
 
-	srcFile, err := os.Open(file)
+	srcFile, err := os.Open(filePath)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -23,13 +23,11 @@ func ReadJSON(file string) map[string]string {
 
 // WriteJSON writes key-value pair JSON
 // from map[string]string data structure
-func WriteJSON(file string) {
-	keyValueMap := make(map[string]string)
-
-	srcFile, err := os.Open(file)
+func WriteJSON(filePath string, mapToDump map[string]string) {
+	srcFile, err := os.Open(filePath)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 	jsonParser := json.NewEncoder(srcFile)
-	jsonParser.Encode(&keyValueMap)
+	jsonParser.Encode(&mapToDump)
 }
