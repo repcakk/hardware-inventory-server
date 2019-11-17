@@ -24,9 +24,6 @@ type BitcaskDB struct {
 	*bitcask.Bitcask
 }
 
-// TODO: remove this object. It is stored in userDB
-var userComputerMap = helpers.ReadJSON("config/usernames-mapping.json")
-
 // OpenDB creates and opens database for given database path
 // dbPath - target database path
 func OpenDB(dbPath string) (BitcaskDB, error) {
@@ -38,11 +35,11 @@ func OpenDB(dbPath string) (BitcaskDB, error) {
 	return dbWrapper, err
 }
 
-// CloseDB close database file
-// db - target database
-func (db *BitcaskDB) CloseDB() {
-	defer db.Close()
-}
+// // CloseDB close database file
+// // db - target database
+// func (db *BitcaskDB) CloseDB() {
+// 	defer db.Close()
+// }
 
 // AddOrUpdateRow adds new or updates row in database
 // db - target database
@@ -67,7 +64,9 @@ func (db *BitcaskDB) GetRows() map[string]string {
 func (db *BitcaskDB) ClearDB() {
 	for key := range db.Keys() {
 		db.Delete(key)
+		return
 	}
+	db.Merge()
 }
 
 // OverwriteDatabaseFromJSON clears current content of database and replace it with new

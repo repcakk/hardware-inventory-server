@@ -2,20 +2,20 @@ package database
 
 // GpuInfo represents name and serial number of single GPU
 type GpuInfo struct {
-	gpuName string
-	gpuSN   string
+	GpuSN   string
+	GpuName string
 }
 
 // UserInfo represents username and hostname of single user
 type UserInfo struct {
-	hostname string
-	username string
+	Hostname string
+	Username string
 }
 
 // UserGpuInfo represent usage of GPU by user
 type UserGpuInfo struct {
-	userInfo UserInfo
-	gpuInfo  GpuInfo
+	User UserInfo
+	Gpu  GpuInfo
 }
 
 // GetGpuInUse returns array of all GPUs currently in use
@@ -28,10 +28,10 @@ func GetGpuInUse() []UserGpuInfo {
 
 	userCount := 0
 	for key, value := range usernames {
-		gpuStatus[userCount].userInfo.hostname = key
-		gpuStatus[userCount].userInfo.username = value
-		gpuStatus[userCount].gpuInfo.gpuSN = gpuInUse[key]                                 // Access GPU serial number by hostname
-		gpuStatus[userCount].gpuInfo.gpuName = gpuInfo[gpuStatus[userCount].gpuInfo.gpuSN] // Access GPU name by gpu serial number
+		gpuStatus[userCount].User.Hostname = key
+		gpuStatus[userCount].User.Username = value
+		gpuStatus[userCount].Gpu.GpuSN = gpuInUse[key]                             // Access GPU serial number by hostname
+		gpuStatus[userCount].Gpu.GpuName = gpuInfo[gpuStatus[userCount].Gpu.GpuSN] // Access GPU name by gpu serial number
 		userCount++
 	}
 	return gpuStatus
@@ -54,8 +54,8 @@ func GetGpuNotInUse() []GpuInfo {
 	for key, value := range gpuAll {
 		// if gpu serial number does not have assigned hostname it means GPU is not in use
 		if reversedGpuInUse[key] == "" {
-			gpuStatus[gpuCount].gpuSN = key
-			gpuStatus[gpuCount].gpuName = value
+			gpuStatus[gpuCount].GpuSN = key
+			gpuStatus[gpuCount].GpuName = value
 			gpuCount++
 		}
 	}

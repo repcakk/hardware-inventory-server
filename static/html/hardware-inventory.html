@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Hardware inventory</title>
+</head>
+
+<body>
+    <div class="centered_content">
+        <h1>Hardware inventory</h1>
+    </div>
+    <div >
+        <div>
+            <h3>GPUs used in computers:</h3>
+            <ul>
+                {{range .GpuInUse}}
+                <li>{{.User.Hostname}} - {{.User.Username}} - {{.Gpu.GpuSN}} - {{.Gpu.GpuName}}</li>
+                {{end}}
+            </ul>
+        </div>
+        <div>
+            <h3>GPUs in storage:</h3>
+            <ul>
+                {{range .GpuNotInUse}}
+                <li>{{.GpuSN}} - {{.GpuName}}</li>
+                {{end}}
+            </ul>
+        </div>
+    </div>
+</body>
+
+</html>
