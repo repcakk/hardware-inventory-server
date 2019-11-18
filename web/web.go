@@ -1,6 +1,8 @@
 package web
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"text/template"
@@ -44,15 +46,27 @@ func inventoryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Run runs http server and perform http handling
-func Run() error {
-	http.HandleFunc("/update", updateHandler)
-	http.HandleFunc("/inventory", inventoryHandler)
+var srv http.Server
 
-	// TODO: Add config handling
-	port := "8080" //config.Port
+// Run runs http server and perform http handling
+func Run(port string) error {
+
+	m := http.NewServeMux()
+	srv = http.Server{Addr: ":" + port, Handler: m}
+
+	m.HandleFunc("/update", updateHandler)
+	m.HandleFunc("/inventory", inventoryHandler)
+
 	// TODO: Improve error handling
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(srv.ListenAndServe())
+
+	fmt.Println("AFTER LISTEN AND SERVE")
 
 	return nil
+}
+
+// Shutdown server
+func Shutdown() {
+	fmt.Println("SHUTDOWN CALLED")
+	srv.Shutdown(context.Background())
 }

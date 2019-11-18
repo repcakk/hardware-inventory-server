@@ -64,7 +64,6 @@ func (db *BitcaskDB) GetRows() map[string]string {
 func (db *BitcaskDB) ClearDB() {
 	for key := range db.Keys() {
 		db.Delete(key)
-		return
 	}
 	db.Merge()
 }
@@ -72,7 +71,7 @@ func (db *BitcaskDB) ClearDB() {
 // OverwriteDatabaseFromJSON clears current content of database and replace it with new
 // path - Path to JSON file representing new content for database
 func (db *BitcaskDB) OverwriteDatabaseFromJSON(filePath string) {
-	db.ClearDB()
+	//db.ClearDB()
 	for key, value := range helpers.ReadJSON(filePath) {
 		db.Put([]byte(key), []byte(value))
 	}

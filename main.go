@@ -1,6 +1,10 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
+	"os"
+
 	db "github.com/repcakk/hardware-inventory-server/database"
 	web "github.com/repcakk/hardware-inventory-server/web"
 )
@@ -28,5 +32,31 @@ func main() {
 	defer db.GpuInUseDB.Close()
 	defer db.UserDB.Close()
 
-	web.Run()
+	db.GpuAllDB.OverwriteDatabaseFromJSON("C:/Users/repca/Desktop/inv_test_data/gpuDetails.json")
+	db.UserDB.OverwriteDatabaseFromJSON("C:/Users/repca/Desktop/inv_test_data/userDetails.json")
+	db.GpuInUseDB.OverwriteDatabaseFromJSON("C:/Users/repca/Desktop/inv_test_data/userGpuDetails.json")
+
+	port := "8080" //config.Port
+
+	go web.Run(port)
+
+	var quit bool = false
+	reader := bufio.NewReader(os.Stdin)
+
+	for !quit {
+		fmt.Printf("Select option:\n q - quit\n s - suspend server and enter maintenance mode\n c - continuue and return from maintenance mode\n")
+
+		result, _, err := reader.ReadRune()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		if result == 'q' {
+			quit = true
+		}
+	}
+
+	web.Shutdown()
+
 }
