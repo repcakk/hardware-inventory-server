@@ -36,7 +36,13 @@ func appController() {
 
 	var maintenanceMode bool = false
 	for !quit {
-		if !maintenanceMode {
+		if maintenanceMode {
+			fmt.Printf(" Select option:\n" +
+				"  l <path to json file> - load database from json file\n" +
+				"  s <path to save json> - save database to json file\n" +
+				"  r - run server again and stop maintenance mode\n" +
+				"  q - quit\n")
+		} else {
 			fmt.Printf(" Select option:\n" +
 				"  s - stop server and enter maintenance mode\n" +
 				"  q - quit\n")
@@ -63,13 +69,6 @@ func appController() {
 			web.Run()
 		}
 
-		if maintenanceMode {
-			fmt.Printf(" Select option:\n" +
-				"  l <path to json file> - load database from json file\n" +
-				"  s <path to save json> - save database to json file\n" +
-				"  r - run server again and stop maintenance mode\n" +
-				"  q - quit\n")
-		}
 	}
 }
 
