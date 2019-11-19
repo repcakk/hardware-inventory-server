@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	db "github.com/repcakk/hardware-inventory-server/database"
 	web "github.com/repcakk/hardware-inventory-server/web"
@@ -27,6 +28,51 @@ import (
 // 	return config
 // }
 
+var port string = "8080" //config.Port
+
+func appController() {
+	var quit bool = false
+	reader := bufio.NewReader(os.Stdin)
+
+	var maintenanceMode bool = false
+	for !quit {
+		if !maintenanceMode {
+			fmt.Printf(" Select option:\n" +
+				"  s - stop server and enter maintenance mode\n" +
+				"  q - quit\n")
+		}
+
+		result, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		result = strings.TrimSpace(result)
+
+		switch result {
+		case "q":
+			quit = true
+		case "s":
+			web.Shutdown()
+			maintenanceMode = true
+			fmt.Printf(" ### Http server stopped - maintenance mode enabled ###\n\n")
+		case "r":
+			maintenanceMode = false
+			fmt.Printf(" ### Http server is running - maintenance mode disabled ###\n\n")
+			web.Init(port)
+			web.Run()
+		}
+
+		if maintenanceMode {
+			fmt.Printf(" Select option:\n" +
+				"  l <path to json file> - load database from json file\n" +
+				"  s <path to save json> - save database to json file\n" +
+				"  r - run server again and stop maintenance mode\n" +
+				"  q - quit\n")
+		}
+	}
+}
+
 func main() {
 	defer db.GpuAllDB.Close()
 	defer db.GpuInUseDB.Close()
@@ -36,26 +82,10 @@ func main() {
 	db.UserDB.OverwriteDatabaseFromJSON("C:/Users/repca/Desktop/inv_test_data/userDetails.json")
 	db.GpuInUseDB.OverwriteDatabaseFromJSON("C:/Users/repca/Desktop/inv_test_data/userGpuDetails.json")
 
-	port := "8080" //config.Port
+	web.Init(port)
+	web.Run()
 
-	go web.Run(port)
-
-	var quit bool = false
-	reader := bufio.NewReader(os.Stdin)
-
-	for !quit {
-		fmt.Printf("Select option:\n q - quit\n s - suspend server and enter maintenance mode\n c - continuue and return from maintenance mode\n")
-
-		result, _, err := reader.ReadRune()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		if result == 'q' {
-			quit = true
-		}
-	}
+	appController()
 
 	web.Shutdown()
 
