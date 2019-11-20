@@ -7,6 +7,10 @@ import (
 
 // All database objects are key-value maps.
 
+// UserDB stores hostname and user pair
+// It is database of all users and theirs computers
+var UserDB, _ = OpenDB("data/user-database")
+
 // GpuAllDB stores gpu serial number and GPU name pair.
 // It is database of all available GPUs.
 var GpuAllDB, _ = OpenDB("data/gpu-info-database")
@@ -14,10 +18,6 @@ var GpuAllDB, _ = OpenDB("data/gpu-info-database")
 // GpuInUseDB stores hostname and gpu serial number pair.
 // It is database of all currently used GPUs in computers.
 var GpuInUseDB, _ = OpenDB("data/gpu-in-use-database")
-
-// UserDB stores hostname and user pair
-// It is database of all users and theirs computers
-var UserDB, _ = OpenDB("data/user-database")
 
 //BitcaskDB wraps bitcask into structure to extend its functionalities
 type BitcaskDB struct {
@@ -68,17 +68,17 @@ func (db *BitcaskDB) ClearDB() {
 	db.Merge()
 }
 
-// OverwriteDatabaseFromJSON clears current content of database and replace it with new
+// LoadDatabaseFromJSON clears current content of database and replace it with new
 // path - Path to JSON file representing new content for database
-func (db *BitcaskDB) OverwriteDatabaseFromJSON(filePath string) {
+func (db *BitcaskDB) LoadDatabaseFromJSON(filePath string) {
 	//db.ClearDB()
 	for key, value := range helpers.ReadJSON(filePath) {
 		db.Put([]byte(key), []byte(value))
 	}
 }
 
-// DumpDatabaseToJSON dumps current content of database to JSON file
+// SaveDatabaseToJSON dumps current content of database to JSON file
 // path - Path to JSON dump file
-func (db *BitcaskDB) DumpDatabaseToJSON(filePath string) {
+func (db *BitcaskDB) SaveDatabaseToJSON(filePath string) {
 	helpers.WriteJSON(filePath, db.GetRows())
 }
