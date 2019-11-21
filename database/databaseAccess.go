@@ -1,6 +1,8 @@
 package database
 
 import (
+	"fmt"
+
 	"github.com/prologic/bitcask"
 	helpers "github.com/repcakk/hardware-inventory-server/helpers"
 )
@@ -35,17 +37,16 @@ func OpenDB(dbPath string) (BitcaskDB, error) {
 	return dbWrapper, err
 }
 
-// // CloseDB close database file
-// // db - target database
-// func (db *BitcaskDB) CloseDB() {
-// 	defer db.Close()
-// }
+// CloseDB close database file
+// db - target database
+func (db *BitcaskDB) CloseDB() {
+	defer db.Close()
+}
 
 // AddOrUpdateRow adds new or updates row in database
 // db - target database
 func (db *BitcaskDB) AddOrUpdateRow(key string, value string) {
 	db.Put([]byte(key), []byte(value))
-	db.Merge()
 }
 
 // GetRows gets all data from given database
@@ -60,20 +61,25 @@ func (db *BitcaskDB) GetRows() map[string]string {
 	return resultsMap
 }
 
-// ClearDB clears given database
-func (db *BitcaskDB) ClearDB() {
-	for key := range db.Keys() {
-		db.Delete(key)
-	}
-	db.Merge()
-}
+// // ClearDB clears given database
+// func (db *BitcaskDB) ClearDB() {
+// 	for key := range db.Keys() {
+// 		db.Delete(key)
+// 	}
+// 	db.Sync()
+// 	db.Merge()
+// }
 
 // LoadDatabaseFromJSON clears current content of database and replace it with new
 // path - Path to JSON file representing new content for database
 func (db *BitcaskDB) LoadDatabaseFromJSON(filePath string) {
 	//db.ClearDB()
 	for key, value := range helpers.ReadJSON(filePath) {
-		db.Put([]byte(key), []byte(value))
+		err := db.Put([]byte(key), []byte(value))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	}
 }
 

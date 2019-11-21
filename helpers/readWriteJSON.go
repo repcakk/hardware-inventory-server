@@ -24,7 +24,7 @@ func ReadJSON(filePath string) map[string]string {
 // WriteJSON writes key-value pair JSON
 // from map[string]string data structure
 func WriteJSON(filePath string, mapToDump map[string]string) {
-	srcFile, err := os.Open(filePath)
+	srcFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0660)
 	if err != nil {
 		fmt.Println(err.Error())
 	}

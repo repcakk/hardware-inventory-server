@@ -30,27 +30,28 @@ import (
 
 var port string = "8080" //config.Port
 
-func loadOrSaveDB(operationType string) {
-	fmt.Printf(" Select database:\n" +
-		"  users   - database contains map of all hostname and username pairs\n" +
-		"  gpu-all - database contains map of all GPU-serial-number and gpu-name pairs\n" +
-		"  gpu-in-use - database contains map of all used in computers GPU-serial-number and hostname pairs\n\n")
-
+func readCommand() string {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf(" ") // whitespace before command
-	dbType, err := reader.ReadString('\n')
+	fmt.Printf(" >> ") // command indicator
+	command, err := reader.ReadString('\n')
 	if err != nil {
 		fmt.Println(err)
-		return
 	}
+	command = strings.TrimSpace(command)
+	fmt.Printf("\n")
+	return command
+}
 
-	fmt.Printf(" Provide path to load from:\n")
-	fmt.Printf(" ") // whitespace before command
-	path, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+func loadOrSaveDB(operationType string) {
+	fmt.Printf("\n Select database:\n" +
+		"     users           database contains map of all hostname and username pairs\n" +
+		"     gpu-all         database contains map of all GPU-serial-number and gpu-name pairs\n" +
+		"     gpu-in-use      database contains map of all used in computers GPU-serial-number and hostname pairs\n")
+
+	dbType := readCommand()
+
+	fmt.Printf(" Provide path for " + operationType + "\n")
+	path := readCommand()
 
 	switch dbType {
 	case "users":
@@ -76,39 +77,39 @@ func loadOrSaveDB(operationType string) {
 
 func appController() {
 	var quit bool = false
-	reader := bufio.NewReader(os.Stdin)
-
 	var maintenanceMode bool = false
 	for !quit {
 		if maintenanceMode {
 			fmt.Printf(" Select option:\n" +
-				"  load <path to json file> - load database from json file\n" +
-				"  save <path to save json> - save database to json file\n" +
-				"  run - run server again and stop maintenance mode\n" +
-				"  quit - quit\n")
+				"     load            load database from json file\n" +
+				"     save            save database to json file\n" +
+				"     resume          run server again and stop maintenance mode\n" +
+				"     quit            quit\n")
 		} else {
 			fmt.Printf(" Select option:\n" +
-				"  stop - stop server and enter maintenance mode\n" +
-				"  quit - quit\n")
+				"     stop            stop server and enter maintenance mode\n" +
+				"     quit            quit\n")
 		}
-		fmt.Printf(" ") // whitespace before command
-		command, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		command = strings.TrimSpace(command)
 
+		command := readCommand()
 		switch command {
 		case "quit":
 			quit = true
 		case "stop":
 			web.Shutdown()
 			maintenanceMode = true
-			fmt.Printf(" ### Http server stopped - maintenance mode enabled ###\n\n")
-		case "run":
+			fmt.Printf("" +
+				" ##########################################################\n" +
+				" ##### Http server stopped - maintenance mode enabled #####\n" +
+				" ##########################################################" +
+				"\n\n")
+		case "resume":
 			maintenanceMode = false
-			fmt.Printf(" ### Http server is running - maintenance mode disabled ###\n\n")
+			fmt.Printf("" +
+				" ##########################################################\n" +
+				" ### Http server is running - maintenance mode disabled ###\n" +
+				" ##########################################################" +
+				"\n\n")
 			web.Init(port)
 			web.Run()
 		case "load":
@@ -123,10 +124,6 @@ func main() {
 	defer db.GpuAllDB.Close()
 	defer db.GpuInUseDB.Close()
 	defer db.UserDB.Close()
-
-	db.UserDB.LoadDatabaseFromJSON("C:/Users/repca/Desktop/inv_test_data/userDetails.json")
-	db.GpuAllDB.LoadDatabaseFromJSON("C:/Users/repca/Desktop/inv_test_data/gpuDetails.json")
-	db.GpuInUseDB.LoadDatabaseFromJSON("C:/Users/repca/Desktop/inv_test_data/userGpuDetails.json")
 
 	web.Init(port)
 	web.Run()
