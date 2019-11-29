@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"text/template"
@@ -44,6 +45,14 @@ func inventoryHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 }
+func moveToStorage(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	gpuSN := r.FormValue("gpuSN")
+
+	fmt.Println("MOVE TO STORAGE CALLED")
+	fmt.Println(gpuSN)
+	db.MoveGpuToStorage(gpuSN)
+}
 
 var serveMux *http.ServeMux
 var server http.Server
@@ -53,6 +62,7 @@ func Init(port string) error {
 	serveMux = http.NewServeMux()
 	serveMux.HandleFunc("/update", updateHandler)
 	serveMux.HandleFunc("/inventory", inventoryHandler)
+	serveMux.HandleFunc("/move_to_storage", moveToStorage)
 	server = http.Server{Addr: ":" + port, Handler: serveMux}
 	// TODO: Improve error handling
 	return nil

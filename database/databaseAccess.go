@@ -61,6 +61,11 @@ func (db *BitcaskDB) GetRows() map[string]string {
 	return resultsMap
 }
 
+// RemoveRow removes row from given database
+func (db *BitcaskDB) RemoveRow(key string) {
+	db.Delete([]byte(key))
+}
+
 // // ClearDB clears given database
 // func (db *BitcaskDB) ClearDB() {
 // 	for key := range db.Keys() {

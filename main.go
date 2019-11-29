@@ -76,6 +76,9 @@ func loadOrSaveDB(operationType string) {
 }
 
 func appController() {
+	web.Init(port)
+	web.Run()
+
 	var quit bool = false
 	var maintenanceMode bool = false
 	for !quit {
@@ -118,6 +121,8 @@ func appController() {
 			loadOrSaveDB(command)
 		}
 	}
+
+	web.Shutdown()
 }
 
 func main() {
@@ -125,11 +130,6 @@ func main() {
 	defer db.GpuInUseDB.Close()
 	defer db.UserDB.Close()
 
-	web.Init(port)
-	web.Run()
-
 	appController()
-
-	web.Shutdown()
 
 }

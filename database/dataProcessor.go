@@ -1,5 +1,10 @@
 package database
 
+import (
+	"fmt"
+	"strconv"
+)
+
 // GpuInfo represents name and serial number of single GPU
 type GpuInfo struct {
 	GpuSN   string
@@ -48,8 +53,11 @@ func GetGpuNotInUse() []GpuInfo {
 		reversedGpuInUse[value] = key
 	}
 
-	gpuStatus := make([]GpuInfo, len(gpuAll)-len(gpuInUse))
+	gpuStatus := make([]GpuInfo, len(gpuAll))
 
+	fmt.Println("gpuAll LEN: " + strconv.Itoa(len(gpuAll)))
+	fmt.Println("gpuInUse LEN: " + strconv.Itoa(len(gpuInUse)))
+	fmt.Println("ARRAY LEN: " + strconv.Itoa(len(gpuAll)-len(gpuInUse)))
 	gpuCount := 0
 	for key, value := range gpuAll {
 		// if gpu serial number does not have assigned hostname it means GPU is not in use
@@ -60,4 +68,17 @@ func GetGpuNotInUse() []GpuInfo {
 		}
 	}
 	return gpuStatus
+}
+
+// MoveGpuToStorage moves gpu to storage for given gpu serial number
+func MoveGpuToStorage(gpuSN string) {
+	gpuInUse := GpuInUseDB.GetRows()
+
+	// reversedGpuInUse it maps GPU serial numbers to hostnames
+	reversedGpuInUse := make(map[string]string)
+	for key, value := range gpuInUse {
+		reversedGpuInUse[value] = key
+	}
+
+	GpuInUseDB.Delete([]byte(reversedGpuInUse[gpuSN]))
 }

@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html>
 
+<script>
+    function confirmMoveToStorage(gpuSN) {
+        var xhttp = new XMLHttpRequest();
+        var shouldMove = confirm("Are you sure you want to move this GPU to storage?");
+        if (shouldMove) {
+            xhttp.open("GET", "/move_to_storage?gpuSN=" + gpuSN, true);
+            xhttp.send();
+        }
+    }
+</script>
+
 <head>
     <title>Hardware inventory</title>
 </head>
@@ -9,12 +20,15 @@
     <div class="centered_content">
         <h1>Hardware inventory</h1>
     </div>
-    <div >
+    <div>
         <div>
             <h3>GPUs used in computers:</h3>
             <ul>
                 {{range .GpuInUse}}
-                <li>{{.User.Hostname}} - {{.User.Username}} - {{.Gpu.GpuSN}} - {{.Gpu.GpuName}}</li>
+                    <li>
+                        <button type="button" onclick="confirmMoveToStorage('{{.Gpu.GpuSN}}')">Move to storage</button> 
+                        {{.User.Hostname}} - {{.User.Username}} - {{.Gpu.GpuSN}} - {{.Gpu.GpuName}}
+                    </li> 
                 {{end}}
             </ul>
         </div>
@@ -22,7 +36,7 @@
             <h3>GPUs in storage:</h3>
             <ul>
                 {{range .GpuNotInUse}}
-                <li>{{.GpuSN}} - {{.GpuName}}</li>
+                    <li>{{.GpuSN}} - {{.GpuName}}</li>
                 {{end}}
             </ul>
         </div>
