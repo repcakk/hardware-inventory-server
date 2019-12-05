@@ -2,30 +2,58 @@ package web
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
-	"text/template"
+	"os"
 
 	db "github.com/repcakk/hardware-inventory-server/database"
 )
 
-// GpuInventoryStatus represents status
-type GpuInventoryStatus struct {
-	GpuInUse    []db.UserGpuInfo
-	GpuNotInUse []db.GpuInfo
+// serverConfig structure for storing server properties
+type serverConfig struct {
+	ServerPort string `json:"serverProt"`
+}
+
+var config = loadConfig("./config/server-config.json")
+
+// loadConfig loads web server config
+func loadConfig(file string) serverConfig {
+	var config serverConfig
+	configFile, err := os.Open(file)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	jsonParser := json.NewDecoder(configFile)
+	jsonParser.Decode(&config)
+
+	return config
 }
 
 func updateHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
+	macAddress := r.FormValue("macAddress")
 	hostname := r.FormValue("hostname")
-	username := r.FormValue("username")
+	userName := r.FormValue("username")
+	surname := r.FormValue("surname")
+	email := r.FormValue("email")
 	gpuSN := r.FormValue("gpuSN")
 	gpuName := r.FormValue("gpuName")
 
-	db.UserDB.AddOrUpdateRow(hostname, username)
-	db.GpuAllDB.AddOrUpdateRow(gpuSN, gpuName)
-	db.GpuInUseDB.AddOrUpdateRow(hostname, gpuSN)
+	gpu := db.Gpu{SN: gpuSN, GpuName: gpuName}
+	gpu, _ = db.AddGpu(gpu)
+
+	user := db.User{Username: userName, Surname: surname, Email: email}
+	user, _ = db.AddUser(user)
+
+	computer := db.Computer{MacAddress: macAddress, Hostname: hostname, CurrentGpuID: gpu.ID, LastGpuID: gpu.ID, UserID: user.ID}
+	computer, isComputerNew := db.AddComputer(computer)
+
+	if !isComputerNew {
+		db.ChangeGpuInComputer(computer.ID, gpu.ID)
+	}
 }
 
 func inventoryHandler(w http.ResponseWriter, r *http.Request) {
@@ -35,35 +63,34 @@ func inventoryHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	var inventoryStatus GpuInventoryStatus
-	inventoryStatus.GpuInUse = db.GetGpuInUse()
-	inventoryStatus.GpuNotInUse = db.GetGpuNotInUse()
+	computersInfo := db.GetComputersGpusUsers(0, 100)
 
-	err = hardwareInventoryTemplate.Execute(w, inventoryStatus)
+	err = hardwareInventoryTemplate.Execute(w, computersInfo)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 }
-func moveToStorage(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	gpuSN := r.FormValue("gpuSN")
 
-	fmt.Println("MOVE TO STORAGE CALLED")
-	fmt.Println(gpuSN)
-	db.MoveGpuToStorage(gpuSN)
-}
+// func moveToStorage(w http.ResponseWriter, r *http.Request) {
+// 	r.ParseForm()
+// 	gpuSN := r.FormValue("gpuSN")
+
+// 	fmt.Println("MOVE TO STORAGE CALLED")
+// 	fmt.Println(gpuSN)
+// 	db.MoveGpuToStorage(gpuSN)
+// }
 
 var serveMux *http.ServeMux
 var server http.Server
 
 // Init initialize server
-func Init(port string) error {
+func Init() error {
 	serveMux = http.NewServeMux()
 	serveMux.HandleFunc("/update", updateHandler)
 	serveMux.HandleFunc("/inventory", inventoryHandler)
-	serveMux.HandleFunc("/move_to_storage", moveToStorage)
-	server = http.Server{Addr: ":" + port, Handler: serveMux}
+	// serveMux.HandleFunc("/move_to_storage", moveToStorage)
+	server = http.Server{Addr: ":" + config.ServerPort, Handler: serveMux}
 	// TODO: Improve error handling
 	return nil
 }

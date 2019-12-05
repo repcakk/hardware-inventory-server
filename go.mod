@@ -1,8 +1,10 @@
 module github.com/repcakk/hardware-inventory-server
 
-go 1.12
+go 1.13
 
 require (
-	github.com/go-pg/pg/v9 v9.0.3 // indirect
-	github.com/prologic/bitcask v0.3.5
+	github.com/go-pg/pg v8.0.6+incompatible
+	github.com/go-pg/pg/v9 v9.0.3
+	github.com/jinzhu/gorm v1.9.11
+	github.com/lib/pq v1.2.0
 )

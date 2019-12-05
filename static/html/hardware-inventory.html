@@ -1,6 +1,24 @@
 <!DOCTYPE html>
 <html>
 
+<style>
+    table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 50%;
+    }
+    
+    td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+    
+    tr:nth-child(even) {
+        background-color: #dddddd;
+    }
+</style>
+
 <script>
     function confirmMoveToStorage(gpuSN) {
         var xhttp = new XMLHttpRequest();
@@ -21,25 +39,35 @@
         <h1>Hardware inventory</h1>
     </div>
     <div>
-        <div>
-            <h3>GPUs used in computers:</h3>
-            <ul>
-                {{range .GpuInUse}}
-                    <li>
-                        <button type="button" onclick="confirmMoveToStorage('{{.Gpu.GpuSN}}')">Move to storage</button> 
-                        {{.User.Hostname}} - {{.User.Username}} - {{.Gpu.GpuSN}} - {{.Gpu.GpuName}}
-                    </li> 
-                {{end}}
-            </ul>
-        </div>
-        <div>
-            <h3>GPUs in storage:</h3>
-            <ul>
-                {{range .GpuNotInUse}}
-                    <li>{{.GpuSN}} - {{.GpuName}}</li>
-                {{end}}
-            </ul>
-        </div>
+        <h3>GPUs used in computers:</h3>
+        <table>
+            <tr>
+                <th>Hostname</th>
+                <th>User</th>
+                <th>GPU Serial Number</th>
+                <th>GPU Name</th>
+                <th>Additional Options</th>
+            </tr>
+            {{range .}}
+                <tr>
+                    <td>
+                        {{.Computer.Hostname}}
+                    </td>
+                    <td>
+                        {{.User.Username}} {{.User.Surname}} 
+                    </td>
+                    <td>
+                        {{.CurrentGpu.SN}}
+                    </td>
+                    <td>
+                        {{.CurrentGpu.GpuName}}
+                    </td>
+                    <td>
+                        <button type="button" onclick="confirmMoveToStorage('{{.CurrentGpu.SN}}')">Put GPU to storage</button> 
+                    </td>
+                </tr>
+            {{end}}
+        </talbe>
     </div>
 </body>
 
